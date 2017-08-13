@@ -1,0 +1,175 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>
+Billing beta </title>
+</head>
+
+<body>
+<!-- ========= -->
+<!-- Your HTML -->
+<!-- ========= -->
+<form>
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#">Items</a></li>
+        <li role="presentation"><a href="#">Customers</a></li>
+        <li role="presentation"><a href="#">Invoice</a></li>
+    </ul>
+<div id = "container"><h3>Items available</h3>
+
+
+<table class="table" id="itemTable">
+        <th>#:</th><th>Operation</th><th>name</th><th>description</th><th>Supplier</th>
+            <th>unit rate</th>
+            <th>hsn</th><th>unit</th><th>status</th>
+   </table>
+    <div class="panel panel-primary">
+    <div class="panel-heading">
+        <h3 class="panel-title">Add a new item</h3>
+    </div>
+       <div class="panel-body">
+    <table class="table">
+        <tr><td>name</td><td><input type="text" id="name"></td></tr>
+        <tr><td>description</td><td><input type="text" id="description"></td></tr>
+        <tr><td>supplier</td><td><input type="text" id="supplier"></td></tr>
+        <tr><td>unit rate</td><td><input type="text" id="unitRate"></td></tr>
+        <tr><td>hsn</td><td><input type="text" id="hsn"></td></tr>
+        <tr><td>unit</td><td><input type="text" id="unit"></td></tr>
+        <tr><td>status</td><td><select  id="status"><option value="ACTIVE">ACTIVE</option><option value="INACTIVE">INACTIVE</option></select></td></tr>
+        <tr> <td><input type="button"  class="btn btn-lg btn-success" id="saveButton" value="save" /></tr>
+    </table>
+    </div>
+</div>
+    </div>
+    </form>
+</body>
+
+
+
+
+
+<!-- ========= -->
+<!-- Libraries -->
+<!-- ========= -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script type = "text/javascript"
+        src = "https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+
+
+<script type = "text/javascript">
+
+$(document).ready(function(){
+ reload();
+ $("#saveButton").click(function(){
+ //var obj = [];
+ tmp = {
+        'name': $('#name').val(),
+        'description': $('#description').val(),
+        'supplier': $('#supplier').val(),
+        'unit_rate': $('#unitRate').val(),
+        'hsn': $('#hsn').val(),
+        'unit_of_measure': $('#unit').val(),
+        'item_status': $('#status').val()
+
+    };
+
+   // obj.push(tmp);
+        $.ajax({
+    type: 'POST',
+    url: '/item/',
+    data: JSON.stringify (tmp),
+    contentType: "application/json",
+    dataType: 'json'
+});
+
+reload();
+    });
+
+
+});
+
+function reload(){
+$('#itemTable').find("tr:gt(0)").remove();
+$('itemTable').children( 'tr:not(:first)' ).remove();
+$.ajax({
+    type: 'GET',
+    url: '/item',
+    dataType: 'json',
+    success: function (data) {
+
+
+
+
+        $.each(data, function(index, element) {
+
+        var count = parseInt(index,10);
+        count =count+1;
+
+        var removeButton = '<input type=\"button\" class=\"btn btn-sm btn-danger\" onclick= \"deleteItem(\''+ element.id +'\');\""+" value=\"delete\" />';
+        var updateButton = '<input type=\"button\" class=\"btn btn-sm btn-info\" onclick= \"updateItem(\''+ element.id +'\');\""+" value=\"update\" />';
+
+        $('#itemTable tr:last').after('<tr id='+element.id+'><td>'+count+'</td><td>'+
+        updateButton+removeButton+
+        '</td><td><input type=\"text\" value=\"'+element.name+
+        '\"/></td>'+'<td><input type=\"textarea\" value=\"'+element.description+'\"/></td>'+
+        '<td><input type =\"text\" value=\"'+element.supplier+'\"/></td>'+
+        '<td><input type =\"text\" value=\"'+element.unit_rate+'\"/></td><td><input type=\"text\" value=\"'+element.hsn+
+        '\"/><td><input type = \"text\" value=\"'+element.unit_of_measure+
+        '\"/></td><td><input type =\"text\" value =\"'+element.item_status+'\"/></td></tr>');
+
+
+        });
+    }
+});
+}
+function deleteItem(id){
+var uri = '/item/'+id;
+$.ajax({
+    type: 'Delete',
+    url: uri,
+       });
+reload();
+}
+
+function updateItem(id){
+var divNode = document.getElementById(id);
+var inputNodes = divNode.getElementsByTagName('INPUT');
+//2 to end index
+ tmp = {
+        'id':id,
+        'name': inputNodes[2].value,
+        'description': inputNodes[3].value,
+        'supplier': inputNodes[4].value,
+        'unit_rate': inputNodes[5].value,
+        'hsn': inputNodes[6].value,
+        'unit_of_measure': inputNodes[7].value,
+        'item_status':inputNodes[8].value
+
+    };
+
+   // obj.push(tmp);
+        $.ajax({
+    type: 'PUT',
+    url: '/item/',
+    data: JSON.stringify (tmp),
+    contentType: "application/json",
+    dataType: 'json'
+});
+
+}
+
+      </script>
+
+
+
+</html>

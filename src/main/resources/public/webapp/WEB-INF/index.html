@@ -1,0 +1,45 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
+
+<%@ page import="java.util.List"%>
+
+<%@ page import="billing.mongo.Users"%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html ng-app="app">
+
+<head>
+<script
+  src="js/angular.min.js">
+</script>
+<script src="js/app.js"></script>
+
+
+</head>
+
+<body>
+
+<div ng-controller="ItemController">
+<table>
+    <tr>
+        <td width="100">ID:</td>
+        <td><input type="text" id="id" ng-model="item.id" /></td>
+    </tr>
+    <tr>
+        <td width="100">Name:</td>
+        <td><input type="text" id="name" ng-model="item.name" /></td>
+    </tr>
+    <tr>
+        <td width="100">Age:</td>
+        <td><input type="text" id="age" ng-model="item.description" /></td>
+    </tr>
+</table>
+<a ng-click="getAllItems()">Get all Items</a><br/><br/>
+<div ng-repeat="item in items">
+{{usr.name}} {{usr.description}}
+
+<div/>
+
+</body>
+
+</html>
