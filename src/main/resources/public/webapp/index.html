@@ -19,33 +19,14 @@ Billing beta </title>
         <li role="presentation"><a href="#">Customers</a></li>
         <li role="presentation"><a href="#">Invoice</a></li>
     </ul>
-<div id = "container"><h3>Items available</h3>
-
-
-<table class="table" id="itemTable">
-        <th>#:</th><th>Operation</th><th>name</th><th>description</th><th>Supplier</th>
-            <th>unit rate</th>
-            <th>hsn</th><th>unit</th><th>status</th>
-   </table>
-    <div class="panel panel-primary">
-    <div class="panel-heading">
-        <h3 class="panel-title">Add a new item</h3>
+<div id = "container" class="container"><h3>Items available</h3>
+<div class="row" id="content-item">
     </div>
-       <div class="panel-body">
-    <table class="table">
-        <tr><td>name</td><td><input type="text" id="name"></td></tr>
-        <tr><td>description</td><td><input type="text" id="description"></td></tr>
-        <tr><td>supplier</td><td><input type="text" id="supplier"></td></tr>
-        <tr><td>unit rate</td><td><input type="text" id="unitRate"></td></tr>
-        <tr><td>hsn</td><td><input type="text" id="hsn"></td></tr>
-        <tr><td>unit</td><td><input type="text" id="unit"></td></tr>
-        <tr><td>status</td><td><select  id="status"><option value="ACTIVE">ACTIVE</option><option value="INACTIVE">INACTIVE</option></select></td></tr>
-        <tr> <td><input type="button"  class="btn btn-lg btn-success" id="saveButton" value="save" /></tr>
-    </table>
+    <div class="row" id="content-edit-item">
     </div>
-</div>
-    </div>
+      </div>
     </form>
+
 </body>
 
 
@@ -59,27 +40,42 @@ Billing beta </title>
 
 <!-- Optional theme -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+<script type = "text/javascript"
+        src = "https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script type = "text/javascript"
-        src = "https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 
+<script src = "https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.js"
+        type = "text/javascript"></script>
 
 <script type = "text/javascript">
-
+var App = {};
 $(document).ready(function(){
  reload();
- $("#saveButton").click(function(){
+
+});
+
+function saveItem(){
  //var obj = [];
+ var isValid = "true";
+ if(!$('#itemName').val()||!$('#itemDescription').val()||!$('#itemSupplier').val()){
+ isValid = "false";
+ $('#errorMsg').removeClass('hidden');
+
+ }
+ else{
+ isValid = "false";
+ $('#errorMsg').addClass('hidden'),
+
  tmp = {
-        'name': $('#name').val(),
-        'description': $('#description').val(),
-        'supplier': $('#supplier').val(),
-        'unit_rate': $('#unitRate').val(),
-        'hsn': $('#hsn').val(),
-        'unit_of_measure': $('#unit').val(),
-        'item_status': $('#status').val()
+        'name': $('#itemName').val(),
+        'description': $('#itemDescription').val(),
+        'supplier': $('#itemSupplier').val(),
+        'unit_rate': $('#itemUnitRate').val(),
+        'hsn': $('#itemHsn').find(":selected").text(),
+        'unit_of_measure':$('#itemUnitMeasure').find(":selected").text(),
+        'item_status': $('#itemStatus').find(":selected").text()
 
     };
 
@@ -91,47 +87,48 @@ $(document).ready(function(){
     contentType: "application/json",
     dataType: 'json'
 });
-
 reload();
-    });
+}
+
+    };
 
 
-});
+
 
 function reload(){
-$('#itemTable').find("tr:gt(0)").remove();
-$('itemTable').children( 'tr:not(:first)' ).remove();
 $.ajax({
     type: 'GET',
     url: '/item',
     dataType: 'json',
     success: function (data) {
+var response = JSON.stringify(data);
+response = '{ \"item\" : '.concat(response);
+response = response.concat("}");
+console.log(response);
+var itemScript = $("#item-template").html();
+var itemTemplate = Handlebars.compile(itemScript);
+var itemHtml = itemTemplate(JSON.parse(response));
+$("#content-item").html(itemHtml);
+ tmp = {
+        'name': '',
+        'description': '',
+        'supplier': '',
+        'unit_rate': '',
+        'hsn': '',
+        'unit_of_measure':'',
+        'item_status': ''
 
+    };
 
+var itemEditScript = $("#item-edit-template").html();
+var itemEditTemplate = Handlebars.compile(itemEditScript);
+var itemEditHtml = itemEditTemplate(JSON.stringify(tmp));
+$("#content-edit-item").html(itemEditHtml);
 
-
-        $.each(data, function(index, element) {
-
-        var count = parseInt(index,10);
-        count =count+1;
-
-        var removeButton = '<input type=\"button\" class=\"btn btn-sm btn-danger\" onclick= \"deleteItem(\''+ element.id +'\');\""+" value=\"delete\" />';
-        var updateButton = '<input type=\"button\" class=\"btn btn-sm btn-info\" onclick= \"updateItem(\''+ element.id +'\');\""+" value=\"update\" />';
-
-        $('#itemTable tr:last').after('<tr id='+element.id+'><td>'+count+'</td><td>'+
-        updateButton+removeButton+
-        '</td><td><input type=\"text\" value=\"'+element.name+
-        '\"/></td>'+'<td><input type=\"textarea\" value=\"'+element.description+'\"/></td>'+
-        '<td><input type =\"text\" value=\"'+element.supplier+'\"/></td>'+
-        '<td><input type =\"text\" value=\"'+element.unit_rate+'\"/></td><td><input type=\"text\" value=\"'+element.hsn+
-        '\"/><td><input type = \"text\" value=\"'+element.unit_of_measure+
-        '\"/></td><td><input type =\"text\" value =\"'+element.item_status+'\"/></td></tr>');
-
-
-        });
     }
 });
 }
+
 function deleteItem(id){
 var uri = '/item/'+id;
 $.ajax({
@@ -170,6 +167,45 @@ var inputNodes = divNode.getElementsByTagName('INPUT');
 
       </script>
 
+<script id="item-template" type="text/x-handlebars-template">
+    <table class="table table-bordered" >
+        <th>#:</th><th>Operation</th><th>name</th><th>description</th><th>Supplier</th>
+        <th>RATE</th>
+        <th>HSN</th><th>UNIT</th><th>STATUS</th>
+        {{#each item}}
+        <tr id="{{id}}"><td>{{@index}}</td><td><input type="button" id="update" onclick=updateItem('{{id}}'); value="Update" class="btn">
+        <input type="button" id="delete"  onclick=deleteItem('{{id}}'); value="Delete" class="btn">
+        </td> <td>{{name}}</td><td>{{description}}</td>
+            <td>{{supplier}}</td><td>{{unit_rate}}</td><td>{{hsn}}</td>
+            <td>{{unit_of_measure}}</td><td>{{item_status}}</td>
+        </tr>
+        {{/each}}
+    </table>
+</script>
+</script id="item-edit-template" type="text/x-handlebars-template">
+<div id="errorMsg" class="hidden alert alert-danger" role="alert">
+    <strong>Oh snap!</strong> Change a few things up and try submitting again.
+</div>
+<h3>Add</h3>
+    <table class="table " >
+        <th>name</th><th>description</th><th>Supplier</th>
+        <th>RATE</th><th>HSN</th><th>UNIT</th><th>STATUS</th>
+        <tr> <td><input type="text"  id="itemName"></td>
+            <td><input type="text"  id="itemDescription"></td>
+            <td><input type="text" id="itemSupplier"></td>
+            <td><input type="text"  id="itemUnitRate"></td>
+            <td><select   id="itemHsn"> <option selected value="HSN">HSN</option></select></td>
+            <td><select  id="itemUnitMeasure"><option selected value="KG">KG</option> </select></td
+            ><td><select  id="itemStatus"><option value="ACTIVE" selected>ACTIVE</option> </select></td>
+        </tr>
+       <tr><td>
+           <input type="button" id="saveBtn"  onclick="saveItem();" value="Save" class="btn">
+            <input type="button" id="cancel"   value="Cancel" class="btn">
+       </td></tr>
+    </table>
+
+
+</script>
 
 
 </html>
