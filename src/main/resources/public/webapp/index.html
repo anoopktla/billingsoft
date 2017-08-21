@@ -10,9 +10,6 @@ Billing beta </title>
 </head>
 
 <body>
-<!-- ========= -->
-<!-- Your HTML -->
-<!-- ========= -->
 <form>
     <ul class="nav nav-tabs" role="tablist">
         <li role="presentation" class="active"><a href="#">Items</a></li>
@@ -55,11 +52,34 @@ $(document).ready(function(){
  reload();
 
 });
+function clearForm(){
 
+blank = {
+        'id':'',
+        'name': '',
+        'description': '',
+        'supplier': '',
+        'unit_rate': '',
+        'hsn': '',
+        'unit_of_measure':'',
+        'item_status': ''
+
+    };
+var itemEditScript = $("#item-edit-template").html();
+var itemEditTemplate = Handlebars.compile(itemEditScript);
+
+var itemEditHtml = itemEditTemplate(JSON.stringify(blank));
+$("#content-edit-item").html(itemEditHtml);
+$('.success').removeClass('success');
+ $('#errorMsg').addClass('hidden');
+
+
+};
 function saveItem(){
- //var obj = [];
  var isValid = "true";
- if(!$('#itemName').val()||!$('#itemDescription').val()||!$('#itemSupplier').val()){
+  var method ="POST";
+ if(!$('#itemName').val()||!$('#itemDescription').val()||!$('#itemSupplier').val()||!$('#itemHsn').find(":selected").text()
+ ||!$('#itemUnitMeasure').find(":selected").text()||!$('#itemStatus').find(":selected").text()){
  isValid = "false";
  $('#errorMsg').removeClass('hidden');
 
@@ -68,7 +88,7 @@ function saveItem(){
  isValid = "false";
  $('#errorMsg').addClass('hidden'),
 
- tmp = {
+  tmp = {
         'name': $('#itemName').val(),
         'description': $('#itemDescription').val(),
         'supplier': $('#itemSupplier').val(),
@@ -78,10 +98,15 @@ function saveItem(){
         'item_status': $('#itemStatus').find(":selected").text()
 
     };
+    if($('#itemId').val()){
+    method ="PUT"
+    tmp.id=$('#itemId').val();
+
+    }
 
    // obj.push(tmp);
         $.ajax({
-    type: 'POST',
+    type: method,
     url: '/item/',
     data: JSON.stringify (tmp),
     contentType: "application/json",
@@ -89,6 +114,7 @@ function saveItem(){
 });
 reload();
 }
+
 
     };
 
@@ -104,30 +130,15 @@ $.ajax({
 var response = JSON.stringify(data);
 response = '{ \"item\" : '.concat(response);
 response = response.concat("}");
-console.log(response);
 var itemScript = $("#item-template").html();
 var itemTemplate = Handlebars.compile(itemScript);
 var itemHtml = itemTemplate(JSON.parse(response));
 $("#content-item").html(itemHtml);
- tmp = {
-        'name': '',
-        'description': '',
-        'supplier': '',
-        'unit_rate': '',
-        'hsn': '',
-        'unit_of_measure':'',
-        'item_status': ''
 
-    };
-
-var itemEditScript = $("#item-edit-template").html();
-var itemEditTemplate = Handlebars.compile(itemEditScript);
-var itemEditHtml = itemEditTemplate(JSON.stringify(tmp));
-$("#content-edit-item").html(itemEditHtml);
-
+clearForm();
     }
 });
-}
+};
 
 function deleteItem(id){
 var uri = '/item/'+id;
@@ -136,39 +147,53 @@ $.ajax({
     url: uri,
        });
 reload();
-}
+};
+
 
 function updateItem(id){
+
+$('.success').removeClass('success');
+ $('#errorMsg').addClass('hidden');
+$('#'+id).addClass("success");
 var divNode = document.getElementById(id);
-var inputNodes = divNode.getElementsByTagName('INPUT');
+var inputNodes = divNode.getElementsByTagName('td');
 //2 to end index
- tmp = {
+ var tmp = {
         'id':id,
-        'name': inputNodes[2].value,
-        'description': inputNodes[3].value,
-        'supplier': inputNodes[4].value,
-        'unit_rate': inputNodes[5].value,
-        'hsn': inputNodes[6].value,
-        'unit_of_measure': inputNodes[7].value,
-        'item_status':inputNodes[8].value
+        'name': $(inputNodes[2]).html(),
+        'description': $(inputNodes[3]).html(),
+        'supplier': $(inputNodes[4]).html(),
+        'unit_rate': $(inputNodes[5]).html(),
+        'hsn': $(inputNodes[6]).html(),
+        'unit_of_measure': $(inputNodes[7]).html(),
+        'item_status':$(inputNodes[8]).html()
 
     };
 
-   // obj.push(tmp);
-        $.ajax({
-    type: 'PUT',
-    url: '/item/',
-    data: JSON.stringify (tmp),
-    contentType: "application/json",
-    dataType: 'json'
-});
+//var itemEditScript = $("#item-edit-template").html();
+//var itemEditTemplate = Handlebars.compile(itemEditScript);
+//console.log(JSON.parse(tmp));
+//var itemEditHtml = itemEditTemplate(JSON.stringify(tmp));
+//$("#content-edit-item").html(itemEditHtml);
+
+$("#itemId").val(tmp.id);
+$("#itemName").val(tmp.name);
+$("#itemDescription").val(tmp.description);
+$("#itemSupplier").val(tmp.supplier);
+$("#itemUnitRate").val(tmp.unit_rate);
+$("#itemHsn").val(tmp.itemHsn);
+$("#itemUnitMeasure").val(tmp.itemUnitMeasure);
+$("#itemStatus").val(tmp.item_status);
+
+
+
 
 }
 
       </script>
 
 <script id="item-template" type="text/x-handlebars-template">
-    <table class="table table-bordered" >
+    <table id="itemDisplayTable" class="table table-bordered" >
         <th>#:</th><th>Operation</th><th>name</th><th>description</th><th>Supplier</th>
         <th>RATE</th>
         <th>HSN</th><th>UNIT</th><th>STATUS</th>
@@ -182,15 +207,15 @@ var inputNodes = divNode.getElementsByTagName('INPUT');
         {{/each}}
     </table>
 </script>
-</script id="item-edit-template" type="text/x-handlebars-template">
+<script id="item-edit-template" type="text/x-handlebars-template">
 <div id="errorMsg" class="hidden alert alert-danger" role="alert">
-    <strong>Oh snap!</strong> Change a few things up and try submitting again.
+    <strong>Error!</strong> Please enter all values.
 </div>
 <h3>Add</h3>
     <table class="table " >
         <th>name</th><th>description</th><th>Supplier</th>
         <th>RATE</th><th>HSN</th><th>UNIT</th><th>STATUS</th>
-        <tr> <td><input type="text"  id="itemName"></td>
+        <tr> <td><input type="hidden" id="itemId"><input type="text"  id="itemName"></td>
             <td><input type="text"  id="itemDescription"></td>
             <td><input type="text" id="itemSupplier"></td>
             <td><input type="text"  id="itemUnitRate"></td>
@@ -200,11 +225,9 @@ var inputNodes = divNode.getElementsByTagName('INPUT');
         </tr>
        <tr><td>
            <input type="button" id="saveBtn"  onclick="saveItem();" value="Save" class="btn">
-            <input type="button" id="cancel"   value="Cancel" class="btn">
+            <input type="button" id="cancel"   value="Cancel" onclick="clearForm();" class="btn">
        </td></tr>
     </table>
-
-
 </script>
 
 

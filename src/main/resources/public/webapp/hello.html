@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset = "UTF-8">
+    <meta http-equiv = "X-UA-Compatible" content = "IE = edge,chrome = 1">
+    <title>Hello World using Backbone.js</title>
+</head>
+
+<body>
+
+<script src = "http://localhost/billingsoft/js/jquery-3.2.1.min.js"
+        type = "text/javascript"></script>
+
+<script src = "http://localhost/billingsoft/js/underscore-min.js"
+        type = "text/javascript"></script>
+
+<script src = "http://localhost/billingsoft/js/backbone-min.js"
+        type = "text/javascript"></script>
+
+
+<script src = "https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.10/handlebars.js"
+        type = "text/javascript"></script>
+<!-- =============== -->
+<!-- Javascript code -->
+<!-- =============== -->
+
+<script type = "text/javascript">
+$(function () {
+   var itemContext = {item:[{
+        "name": "Anoop",
+        "id": "59901e48bbb54a255b4fb810",
+        "description": "anoops description",
+        "supplier": "anoops supplier",
+        "unit_rate": "32",
+        "hsn": "234",
+        "unit_of_measure": "TONNE",
+        "item_status": "ACTIVE"
+    }
+    ,
+    {
+        "name": "renamed ",
+        "id": "598fce3dbbb54a255b4fb80a",
+        "description": "this is",
+        "supplier": "super",
+        "unit_rate": "32",
+        "hsn": "hsn",
+        "unit_of_measure": "KG",
+        "item_status": "ACTIVE"
+    }]};
+
+
+var itemScript = $("#item-template").html();
+var itemTemplate = Handlebars.compile(itemScript);
+var itemHtml = itemTemplate(itemContext);
+$("#content-item").html(itemHtml);
+
+
+});
+      </script>
+
+<script id="item-template" type="text/x-handlebars-template">
+    <table class="table table-bordered" id="itemTable">
+        <th>#:</th><th>Operation</th><th>name</th><th>description</th><th>Supplier</th>
+        <th>RATE</th>
+        <th>HSN</th><th>UNIT</th><th>STATUS</th>
+    {{#each item}}
+    <tr id="{{id}}"><td>{{@index}}</td><td>action</td> <td>{{name}}</td><td>{{description}}</td>
+        <td>{{supplier}}</td><td>{{unit_rate}}</td><td>{{hsn}}</td>
+    <td>{{unit_of_measure}}</td><td>{{item_status}}</td>
+    </tr>
+    {{/each}}
+        </table>
+</script>
+
+<div id="content-item"></div>
+
+</body>
+</html>
+function reload(){
+
+
+$.ajax({
+type: 'GET',
+url: '/item',
+dataType: 'json',
+success: function (data) {
+$.each(data, function(index, element) {
+
+var count = parseInt(index,10);
+count =count+1;
+
+var removeButton = '<input type=\"button\" class=\"btn btn-sm btn-danger\" onclick= \"deleteItem(\''+ element.id +'\');\""+" value=\"delete\" />';
+var updateButton = '<input type=\"button\" class=\"btn btn-sm btn-info\" onclick= \"updateItem(\''+ element.id +'\');\""+" value=\"update\" />';
+
+$('#itemTable tr:last').after('<tr id='+element.id+'><td>'+count+'</td><td>'+
+    updateButton+removeButton+
+    '</td><td><input type=\"text\" value=\"'+element.name+
+    '\"/></td>'+'<td><input type=\"textarea\" value=\"'+element.description+'\"/></td>'+
+    '<td><input type =\"text\" value=\"'+element.supplier+'\"/></td>'+
+    '<td><input type =\"text\" value=\"'+element.unit_rate+'\"/></td><td><input type=\"text\" value=\"'+element.hsn+
+        '\"/><td><input type = \"text\" value=\"'+element.unit_of_measure+
+        '\"/></td><td><input type =\"text\" value =\"'+element.item_status+'\"/></td></tr>');
+
+
+});
+}
+});
+}
